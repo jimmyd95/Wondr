@@ -1,11 +1,12 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SceneTransitionManager : MonoBehaviour
 {
     public static SceneTransitionManager Instance { get; private set; }
+
+    [SerializeField] private GameObject _loadingScreen;
 
     
     private void Awake()
@@ -15,6 +16,7 @@ public class SceneTransitionManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(_loadingScreen);
         }
         else
         {
@@ -23,21 +25,34 @@ public class SceneTransitionManager : MonoBehaviour
 
     }
 
-    public void LoadScene(string sceneName)
+    [Tooltip("Asynchronously load a scene using the SceneTransitionManager Instance")]
+    public void LoadScene(int sceneId, LoadSceneMode sceneMode = LoadSceneMode.Single)
     {
-        StartCoroutine(LoadSceneAsync(sceneName));
+        StartCoroutine(LoadSceneAsync(sceneId, sceneMode));
     }
 
-    private IEnumerator LoadSceneAsync(string sceneName)
+    // Asynchronously loads a given scene
+    private IEnumerator LoadSceneAsync(int sceneId, LoadSceneMode sceneMode)
     {
         // TODO: Add a fade-out effect here
 
-        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
+
+        _loadingScreen.SetActive(true);
+
         while (!operation.isDone)
         {
             yield return null;
         }
 
+        _loadingScreen.SetActive(false);
+
         // TODO: Add a fade-in effect here
+    }
+
+    [Tooltip("Asynchronously unloads a given scene")]
+    public void UnloadScene(int sceneId)
+    {
+        SceneManager.UnloadSceneAsync(sceneId);
     }
 }
